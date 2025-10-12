@@ -86,7 +86,17 @@ task createDist(type: CreateDistTask, dependsOn: proguard) {
     compType "fabric"
 }
 
-build.finalizedBy(createDist)
+def aiCompilationDir = rootProject.layout.projectDirectory.dir("compiled-by-ai")
+
+def syncAiArtifacts = tasks.register("syncAiArtifacts", Sync) {
+    dependsOn tasks.named("remapJar")
+    from(layout.buildDirectory.dir("libs")) {
+        include "*.jar"
+    }
+    into aiCompilationDir
+}
+
+build.finalizedBy(createDist, syncAiArtifacts)
 
 publishing {
     publications {
