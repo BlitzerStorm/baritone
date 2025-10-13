@@ -30,6 +30,7 @@ import baritone.pathing.movement.CalculationContext;
 import baritone.pathing.movement.MovementHelper;
 import baritone.utils.BaritoneProcessHelper;
 import baritone.utils.BlockStateInterface;
+import baritone.utils.pathing.HazardAnalyzer;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -983,6 +984,9 @@ public final class MineProcess extends BaritoneProcessHelper implements IMinePro
             return false;
         }
         if (MovementHelper.avoidBreaking(ctx.bsi, pos.getX(), pos.getY(), pos.getZ(), state)) {
+            return false;
+        }
+        if (HazardAnalyzer.isUnsafeToMine(ctx, new BetterBlockPos(pos))) {
             return false;
         }
 

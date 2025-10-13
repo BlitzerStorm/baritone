@@ -36,6 +36,7 @@ import baritone.pathing.path.PathExecutor;
 import baritone.utils.PathRenderer;
 import baritone.utils.PathingCommandContext;
 import baritone.utils.pathing.Favoring;
+import baritone.utils.pathing.PathSegmentCache;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -488,6 +489,29 @@ public final class PathingBehavior extends Behavior implements IPathingBehavior,
             logDebug("no goal"); // TODO should this be an exception too? definitely should be checked by caller
             return;
         }
+        BetterBlockPos startPos = new BetterBlockPos(start);
+        PathSegmentCache cache = baritone.getPathSegmentCache();
+        if (Baritone.settings().enablePathSegmentCaching.value) {
+            Optional<IPath> cached = cache.lookup(startPos, goal, context,
+                Baritone.settings().pathCacheStartToleranceSq.value,
+                Baritone.settings().pathCacheImprovementEpsilon.value);
+            if (cached.isPresent()) {
+                PathExecutor executor = new PathExecutor(this, cached.get());
+                if (current == null) {
+                    if (executor.getPath().positions().contains(expectedSegmentStart)) {
+                        current = executor;
+                        queuePathEvent(PathEvent.CALC_FINISHED_NOW_EXECUTING);
+                        resetEstimatedTicksToGoal(start);
+                        return;
+                    }
+                } else if (executor.getPath().getSrc().equals(current.getPath().getDest())) {
+                    next = executor;
+                    queuePathEvent(PathEvent.NEXT_SEGMENT_CALC_FINISHED);
+                    return;
+                }
+            }
+        }
+
         long primaryTimeout;
         long failureTimeout;
         if (current == null) {
@@ -516,6 +540,9 @@ public final class PathingBehavior extends Behavior implements IPathingBehavior,
                             queuePathEvent(PathEvent.CALC_FINISHED_NOW_EXECUTING);
                             current = executor.get();
                             resetEstimatedTicksToGoal(start);
+                            if (Baritone.settings().enablePathSegmentCaching.value) {
+                                cache.store(startPos, goal, context, current.getPath(), Baritone.settings().maxCachedPathSegments.value);
+                            }
                         } else {
                             logDebug("Warning: discarding orphan path segment with incorrect start");
                         }
@@ -531,6 +558,9 @@ public final class PathingBehavior extends Behavior implements IPathingBehavior,
                             if (executor.get().getPath().getSrc().equals(current.getPath().getDest())) {
                                 queuePathEvent(PathEvent.NEXT_SEGMENT_CALC_FINISHED);
                                 next = executor.get();
+                                if (Baritone.settings().enablePathSegmentCaching.value) {
+                                    cache.store(startPos, goal, context, next.getPath(), Baritone.settings().maxCachedPathSegments.value);
+                                }
                             } else {
                                 logDebug("Warning: discarding orphan next segment with incorrect start");
                             }
