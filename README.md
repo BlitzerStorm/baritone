@@ -104,6 +104,17 @@ Here are some links to help to get started:
 
 [![Stargazers over time](https://starchart.cc/cabaletta/baritone.svg)](https://starchart.cc/cabaletta/baritone)
 
+## Scenario validation and benchmarking
+
+Baritone now includes scenario-driven tests that model flat plains, hilly ridges, and winding caves so core behaviour such as hazard-aware mining, follow circling, survival interrupts, and cached path reuse can be validated without spinning up a full Minecraft instance. The suite and its companion benchmarks can be executed with Gradle:
+
+```bash
+./gradlew test
+./gradlew benchmarkPathing
+```
+
+The benchmark task writes JSON and CSV metrics under `build/benchmarks/` (override with `-Dbaritone.benchmark.output=/path/to/dir`) covering per-scenario timing, node expansion counts, hazard checks, and cache reuse rates. Our GitHub Actions workflow runs both tasks to keep the regression safety net active.
+
 # API
 
 The API is heavily documented, you can find the Javadocs for the latest release [here](https://baritone.leijurv.com/).
