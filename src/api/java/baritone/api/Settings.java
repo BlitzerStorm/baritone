@@ -641,6 +641,11 @@ public final class Settings {
     public final Setting<Boolean> doDeathWaypoints = new Setting<>(true);
 
     /**
+     * Cancel every running Baritone process when the player dies.
+     */
+    public final Setting<Boolean> stopOnDeath = new Setting<>(false);
+
+    /**
      * The big one. Download all chunks in simplified 2-bit format and save them for better very-long-distance pathing.
      */
     public final Setting<Boolean> chunkCaching = new Setting<>(true);

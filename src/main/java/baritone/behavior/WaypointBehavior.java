@@ -33,11 +33,15 @@ import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BedPart;
 
+import java.util.Objects;
 import java.util.Set;
 
 import static baritone.api.command.IBaritoneChatControl.FORCE_COMMAND_PREFIX;
 
 public class WaypointBehavior extends Behavior {
+
+    private long lastDeathWaypointGameTime = Long.MIN_VALUE;
+    private BetterBlockPos lastDeathWaypointPos;
 
 
     public WaypointBehavior(Baritone baritone) {
@@ -66,26 +70,48 @@ public class WaypointBehavior extends Behavior {
 
     @Override
     public void onPlayerDeath() {
-        if (!Baritone.settings().doDeathWaypoints.value)
+        if (ctx.player() == null || !ctx.player().isDeadOrDying()) {
             return;
-        Waypoint deathWaypoint = new Waypoint("death", Waypoint.Tag.DEATH, ctx.playerFeet());
-        baritone.getWorldProvider().getCurrentWorld().getWaypoints().addWaypoint(deathWaypoint);
-        MutableComponent component = Component.literal("Death position saved.");
-        component.setStyle(component.getStyle()
-                .withColor(ChatFormatting.WHITE)
-                .withHoverEvent(new HoverEvent.ShowText(
-                        Component.literal("Click to goto death")
-                ))
-                .withClickEvent(new ClickEvent.RunCommand(
-                        String.format(
-                                "%s%s goto %s @ %d",
-                                FORCE_COMMAND_PREFIX,
-                                "wp",
-                                deathWaypoint.getTag().getName(),
-                                deathWaypoint.getCreationTimestamp()
-                        )
-                )));
-        Helper.HELPER.logDirect(component);
+        }
+
+        BetterBlockPos deathPos = ctx.playerFeet();
+        long gameTime = ctx.world() != null ? ctx.world().getGameTime() : Long.MIN_VALUE;
+
+        boolean recordedThisTick = gameTime == lastDeathWaypointGameTime
+                && Objects.equals(deathPos, lastDeathWaypointPos);
+
+        if (!recordedThisTick && Baritone.settings().doDeathWaypoints.value) {
+            lastDeathWaypointGameTime = gameTime;
+            lastDeathWaypointPos = deathPos;
+
+            Waypoint deathWaypoint = new Waypoint("death", Waypoint.Tag.DEATH, deathPos);
+            baritone.getWorldProvider().getCurrentWorld().getWaypoints().addWaypoint(deathWaypoint);
+            MutableComponent component = Component.literal("Death position saved.");
+            component.setStyle(component.getStyle()
+                    .withColor(ChatFormatting.WHITE)
+                    .withHoverEvent(new HoverEvent.ShowText(
+                            Component.literal("Click to goto death")
+                    ))
+                    .withClickEvent(new ClickEvent.RunCommand(
+                            String.format(
+                                    "%s%s goto %s @ %d",
+                                    FORCE_COMMAND_PREFIX,
+                                    "wp",
+                                    deathWaypoint.getTag().getName(),
+                                    deathWaypoint.getCreationTimestamp()
+                            )
+                    )));
+            Helper.HELPER.logDirect(component);
+        }
+
+        if (Baritone.settings().stopOnDeath.value) {
+            boolean canceledSafely = baritone.getPathingBehavior().cancelEverything();
+            ChatFormatting color = canceledSafely ? ChatFormatting.RED : ChatFormatting.GOLD;
+            String message = canceledSafely
+                    ? "Stopped Baritone tasks after death."
+                    : "Attempted to stop Baritone tasks after death.";
+            Helper.HELPER.logDirect(Component.literal(message).withStyle(style -> style.withColor(color)));
+        }
     }
 
 }
