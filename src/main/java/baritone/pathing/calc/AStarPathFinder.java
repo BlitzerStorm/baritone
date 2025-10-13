@@ -29,6 +29,8 @@ import baritone.pathing.movement.Moves;
 import baritone.utils.pathing.BetterWorldBorder;
 import baritone.utils.pathing.Favoring;
 import baritone.utils.pathing.MutableMoveResult;
+import baritone.utils.pathing.HazardAnalyzer;
+import net.minecraft.core.BlockPos;
 
 import java.util.Optional;
 
@@ -95,8 +97,13 @@ public final class AStarPathFinder extends AbstractNodeCostSearch {
             PathNode currentNode = openSet.removeLowest();
             mostRecentConsidered = currentNode;
             numNodes++;
+            double heuristicToGoal = goal.heuristic(currentNode.x, currentNode.y, currentNode.z);
             if (goal.isInGoal(currentNode.x, currentNode.y, currentNode.z)) {
                 logDebug("Took " + (System.currentTimeMillis() - startTime) + "ms, " + numMovementsConsidered + " movements considered");
+                return Optional.of(new Path(realStart, startNode, currentNode, numNodes, goal, calcContext));
+            }
+            if (heuristicToGoal <= Baritone.settings().nearGoalHeuristicThreshold.value) {
+                logDebug("Reached near-target threshold after " + numNodes + " expansions");
                 return Optional.of(new Path(realStart, startNode, currentNode, numNodes, goal, calcContext));
             }
             for (Moves moves : allMoves) {
@@ -163,7 +170,11 @@ public final class AStarPathFinder extends AbstractNodeCostSearch {
                     actionCost *= favoring.calculate(hashCode);
                 }
                 PathNode neighbor = getNodeAtPosition(res.x, res.y, res.z, hashCode);
-                double tentativeCost = currentNode.cost + actionCost;
+                double hazardPenalty = 0D;
+                if (Baritone.settings().hazardWeightMultiplier.value > 0) {
+                    hazardPenalty = HazardAnalyzer.calculateHazardPenalty(calcContext, new BlockPos(res.x, res.y, res.z));
+                }
+                double tentativeCost = currentNode.cost + actionCost + hazardPenalty;
                 if (neighbor.cost - tentativeCost > minimumImprovement) {
                     neighbor.previous = currentNode;
                     neighbor.cost = tentativeCost;

@@ -36,6 +36,7 @@ import baritone.utils.GuiClick;
 import baritone.utils.InputOverrideHandler;
 import baritone.utils.PathingControlManager;
 import baritone.utils.player.BaritonePlayerContext;
+import baritone.utils.pathing.PathSegmentCache;
 import net.minecraft.client.Minecraft;
 
 import java.io.IOException;
@@ -90,6 +91,8 @@ public class Baritone implements IBaritone {
 
     public BlockStateInterface bsi;
 
+    private final PathSegmentCache pathSegmentCache;
+
     Baritone(Minecraft mc) {
         this.mc = mc;
         this.gameEventHandler = new GameEventHandler(this);
@@ -113,6 +116,7 @@ public class Baritone implements IBaritone {
         }
 
         this.pathingControlManager = new PathingControlManager(this);
+        this.pathSegmentCache = new PathSegmentCache();
         {
             this.followProcess           = this.registerProcess(FollowProcess::new);
             this.mineProcess             = this.registerProcess(MineProcess::new);
@@ -150,6 +154,10 @@ public class Baritone implements IBaritone {
     @Override
     public PathingControlManager getPathingControlManager() {
         return this.pathingControlManager;
+    }
+
+    public PathSegmentCache getPathSegmentCache() {
+        return pathSegmentCache;
     }
 
     @Override

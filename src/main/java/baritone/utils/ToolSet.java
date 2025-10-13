@@ -160,6 +160,12 @@ public class ToolSet {
             if (Baritone.settings().itemSaver.value && (itemStack.getDamageValue() + Baritone.settings().itemSaverThreshold.value) >= itemStack.getMaxDamage() && itemStack.getMaxDamage() > 1) {
                 continue;
             }
+            if (Baritone.settings().enableDurabilityTracking.value && itemStack.getMaxDamage() > 1) {
+                double durabilityRatio = (itemStack.getMaxDamage() - itemStack.getDamageValue()) / (double) itemStack.getMaxDamage();
+                if (durabilityRatio <= Baritone.settings().durabilityDangerThreshold.value) {
+                    continue;
+                }
+            }
             double speed = calculateSpeedVsBlock(itemStack, blockState);
             boolean silkTouch = hasSilkTouch(itemStack);
             if (speed > highestSpeed) {
@@ -177,6 +183,9 @@ public class ToolSet {
                     bestSilkTouch = silkTouch;
                 }
             }
+        }
+        if (highestSpeed == Double.NEGATIVE_INFINITY) {
+            return player.getInventory().getSelectedSlot();
         }
         return best;
     }

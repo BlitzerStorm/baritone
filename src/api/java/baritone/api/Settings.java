@@ -500,6 +500,41 @@ public final class Settings {
     public final Setting<Boolean> minimumImprovementRepropagation = new Setting<>(true);
 
     /**
+     * Penalize hazardous terrain while searching, weighting lava, fire, and steep drops.
+     */
+    public final Setting<Double> hazardWeightMultiplier = new Setting<>(8D);
+
+    /**
+     * Radius around candidate blocks to inspect for hazards when mining or pathing.
+     */
+    public final Setting<Integer> hazardScanRadius = new Setting<>(3);
+
+    /**
+     * Distance (in cost heuristic) at which the search can early exit and accept the current best node.
+     */
+    public final Setting<Double> nearGoalHeuristicThreshold = new Setting<>(1.5D);
+
+    /**
+     * Maximum number of cached path segments to retain in memory.
+     */
+    public final Setting<Integer> maxCachedPathSegments = new Setting<>(64);
+
+    /**
+     * Whether previously successful path segments should be reused when terrain is unchanged.
+     */
+    public final Setting<Boolean> enablePathSegmentCaching = new Setting<>(true);
+
+    /**
+     * Minimum squared distance before cached segments are considered equivalent.
+     */
+    public final Setting<Integer> pathCacheStartToleranceSq = new Setting<>(4);
+
+    /**
+     * Minimum heuristic improvement needed before considering the cached result stale.
+     */
+    public final Setting<Double> pathCacheImprovementEpsilon = new Setting<>(0.5D);
+
+    /**
      * After calculating a path (potentially through cached chunks), artificially cut it off to just the part that is
      * entirely within currently loaded chunks. Improves path safety because cached chunks are heavily simplified.
      * <p>
@@ -879,6 +914,81 @@ public final class Settings {
      * Durability to leave on the tool when using itemSaver
      */
     public final Setting<Integer> itemSaverThreshold = new Setting<>(10);
+
+    /**
+     * Enable proactive durability tracking on all equipped tools.
+     */
+    public final Setting<Boolean> enableDurabilityTracking = new Setting<>(true);
+
+    /**
+     * Percentage (0-1) of durability considered dangerous and triggers tool swapping.
+     */
+    public final Setting<Double> durabilityDangerThreshold = new Setting<>(0.1D);
+
+    /**
+     * Automatically craft replacement tools when the configured stock runs low.
+     */
+    public final Setting<Boolean> autoCraftTools = new Setting<>(false);
+
+    /**
+     * Preferred tool profile identifier used when selecting between available variants.
+     */
+    public final Setting<String> toolPreferenceProfile = new Setting<>("default");
+
+    /**
+     * Enable the holistic self-maintenance supervisor process.
+     */
+    public final Setting<Boolean> enableSelfMaintenance = new Setting<>(true);
+
+    /**
+     * Hunger level (0-20) under which the bot will interrupt tasks to eat.
+     */
+    public final Setting<Integer> hungerMaintenanceThreshold = new Setting<>(8);
+
+    /**
+     * Health (half-hearts) under which healing items are prioritized.
+     */
+    public final Setting<Integer> healthMaintenanceThreshold = new Setting<>(8);
+
+    /**
+     * Light level threshold that triggers automatic torch placement when enabled.
+     */
+    public final Setting<Integer> autoTorchLightThreshold = new Setting<>(7);
+
+    /**
+     * Enable automatic torch placement during self-maintenance.
+     */
+    public final Setting<Boolean> enableAutoTorch = new Setting<>(false);
+
+    /**
+     * Whether to auto-cook raw food when fuel and furnace are available.
+     */
+    public final Setting<Boolean> autoCookFood = new Setting<>(false);
+
+    /**
+     * Toggle advanced follow strafing behavior when within goal radius.
+     */
+    public final Setting<Boolean> enableFollowCircling = new Setting<>(true);
+
+    /**
+     * Smooth motion factor (0-1) applied during follow adjustments.
+     */
+    public final Setting<Double> followSmoothingFactor = new Setting<>(0.65D);
+
+    /**
+     * Number of ticks with negligible movement before the bot considers itself stuck.
+     */
+    public final Setting<Integer> stuckDetectionWindowTicks = new Setting<>(40);
+
+    /**
+     * Maximum consecutive recovery attempts before idling when stuck.
+     */
+    public final Setting<Integer> maxStuckRecoveryAttempts = new Setting<>(3);
+
+    /**
+     * Selects the active priority profile (e.g. cautious, aggressive).
+     */
+    public final Setting<String> taskPriorityProfile = new Setting<>("cautious");
 
     /**
      * Always prefer silk touch tools over regular tools. This will not sacrifice speed, but it will always prefer silk
