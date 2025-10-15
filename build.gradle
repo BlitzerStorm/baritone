@@ -146,6 +146,20 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
 }
 
+def benchmarkOutput = System.getProperty('baritone.benchmark.output') ?: "${buildDir}/benchmarks"
+
+tasks.register('benchmarkPathing', Test) {
+    description = 'Runs the scenario driven pathing benchmark suite.'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    include 'baritone/pathing/benchmark/**'
+    systemProperty 'baritone.benchmark.output', benchmarkOutput
+    outputs.dir(file(benchmarkOutput))
+}
+
+check.dependsOn benchmarkPathing
+
 jar {
     from sourceSets.main.output, sourceSets.launch.output, sourceSets.api.output
 }
